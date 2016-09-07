@@ -5,7 +5,11 @@ var calenderHtml = function (dateObj) {
      * 日历操作头部
      */
     this.renderOpt = function(){
-        var opt = '<div class="calendar_left pkg_double_month"><p class="date_text">' + dateObj.year + '年' + dateObj.month + '月</p>';
+        var thisMonth = dateObj.month;
+        if(thisMonth < 10){
+            thisMonth = '0' + thisMonth;
+        }
+        var opt = '<div class="calendar_left pkg_double_month"><p class="date_text">' + dateObj.year + '年' + thisMonth + '月</p>';
         return opt;
     }
 
@@ -34,20 +38,28 @@ var calenderHtml = function (dateObj) {
             if ((i - 1) >= week && (i - c) <= days) {
                 var price = dateUtil.getPrice((i - c));
                 var priceStr = "";
-                var classStyle = "class='on'";
+                var classStyle = "";
                 if (price != -1) {
                     priceStr = "<dfn>¥</dfn>" + price;
-                    // classStyle = "class='on'";
+                    classStyle = "class='on'";
                 }
                 if (price != -1&&dateObj.year==new Date().getFullYear()&&dateObj.month==new Date().getMonth()+1&&i-c==new Date().getDate()) {
                     classStyle = "class='on today'";
                 }
+                var thisMonth = dateObj.month,
+                    thisDay = i - c;
+                if(thisMonth < 10){
+                    thisMonth = '0' + thisMonth;
+                }
+                if(thisDay < 10){
+                    thisDay = '0' + thisDay;
+                }
                 //判断今天
                 if(dateObj.year==new Date().getFullYear()&&dateObj.month==new Date().getMonth()+1&&i-c==new Date().getDate()){
-                    caleTable += '<td  ' + classStyle + ' date="' + dateObj.year + "-" + dateObj.month + "-" + (i - c) + '" price="' + price + '"><a><span class="date basefix">今天</span><span class="team basefix" style="display: none;">&nbsp;</span><span class="calendar_price01">' + priceStr + '</span></a></td>';
+                    caleTable += '<td  ' + classStyle + ' date="' + dateObj.year + "-" + thisMonth + "-" + thisDay + '" price="' + price + '" + index="'+ index +'"><a><span class="date basefix">今天</span><span class="team basefix" style="display: none;">&nbsp;</span><span class="calendar_price01">' + priceStr + '</span></a></td>';
                 }
                 else{
-                    caleTable += '<td  ' + classStyle + ' date="' + dateObj.year + "-" + dateObj.month + "-" + (i - c) + '" price="' + price + '"><a><span class="date basefix">' + (i - c) + '</span><span class="team basefix" style="display: none;">&nbsp;</span><span class="calendar_price01">' + priceStr + '</span></a></td>';
+                    caleTable += '<td  ' + classStyle + ' date="' + dateObj.year + "-" + thisMonth + "-" + thisDay + '" price="' + price + '" + index="'+ index +'"><a><span class="date basefix">' + thisDay + '</span><span class="team basefix" style="display: none;">&nbsp;</span><span class="calendar_price01">' + priceStr + '</span></a></td>';
                 }
                 if (index == 6) {
                     caleTable += '</tr>';
@@ -128,10 +140,35 @@ var dateUtil = {
         var date = sender.getAttribute("date");
         var price = sender.getAttribute("price");
         var el = document.getElementById("calendar");
+        var wk = parseInt(sender.getAttribute("index"));
+        var thisWeek;
+        switch (wk){
+            case 0:
+                thisWeek = "星期天";
+                break;
+            case 1:
+                thisWeek = "星期一";
+                break;
+            case 2:
+                thisWeek = "星期二";
+                break;
+            case 3:
+                thisWeek = "星期三";
+                break;
+            case 4:
+                thisWeek = "星期四";
+                break;
+            case 5:
+                thisWeek = "星期五";
+                break;
+            case 6:
+                thisWeek = "星期六";
+                break;
+        }
         if (el != null) {
-            el.value = date;
-            alert("日期是："+date);
-            alert("价格是：￥"+price);
+            el.value = date + ' ' + thisWeek;
+            // alert("日期是："+date);
+            // alert("价格是：￥"+price);
             // pickerEvent.remove();
         }
     },
@@ -205,6 +242,9 @@ var calendar = function () {
      * @param layoutNum
      */
     this.init = function (layoutNum,data) {
+        if($('.calendar').length > 0){
+            return;
+        }
         var date = new Date();
         if(!layoutNum || layoutNum === 1){
             dateObjArr.push({
@@ -233,14 +273,15 @@ var calendar = function () {
     }
 }
 
-// $(document).bind("click", function (event) {
-//     var e = event || window.event;
-//     var elem = e.srcElement || e.target;
-//     while (elem) {
-//         if (elem.className == "calendar") {
-//             return;
-//         }
-//         elem = elem.parentNode;
-//     }
-//     dateUtil.remove();
-// });
+$(document).bind("click", function (event) {
+    var e = event || window.event;
+    var elem = e.srcElement || e.target;
+    while (elem) {
+        if (elem.id == "calendar") {
+            return;
+        }
+        elem = elem.parentNode;
+    }
+    dateUtil.remove();
+    dateObjArr = [];
+});
